@@ -100,7 +100,8 @@ def eval_model(args):
     directory = '/kaggle/input/sd-images'
     for filename in os.listdir(directory):
         if filename.endswith(".png"):
-            image_files = [filename]
+            image_file = os.path.join(directory, filename)
+            image_files = [image_file]
             #image_files = image_parser(args)
             images = load_images(image_files)
             image_sizes = [x.size for x in images]
