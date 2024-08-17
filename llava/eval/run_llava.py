@@ -223,7 +223,7 @@ def eval_model_old(args):
 
 
 if __name__ == "__main__":
-    prompt = "Generate lyrics that suit this image"
+    prompt = "Generate lyrics by the atmosphere and overall sentiment depicted in this image"
     model_path = "liuhaotian/llava-v1.5-7b"
     args = type('Args', (), {
         "model_path": model_path,
