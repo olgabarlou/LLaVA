@@ -97,7 +97,7 @@ def eval_model(args):
     conv.append_message(conv.roles[1], None)
     prompt = conv.get_prompt()
 
-    directory = '/kaggle/input/sd-images-v2'
+    directory = '/kaggle/input/sd-images-v3'
     for filename in os.listdir(directory):
         if filename.endswith(".png"):
             image_file = os.path.join(directory, filename)
