@@ -224,7 +224,7 @@ def eval_model_old(args):
 
 if __name__ == "__main__":
     prompt = "Create song lyrics that match the atmosphere and overall sentiment depicted in this image"
-    model_path = "liuhaotian/llava-v1.5-7b"
+    model_path = "liuhaotian/llava-v1.6-mistral-7b" #"liuhaotian/llava-v1.5-7b"
     args = type('Args', (), {
         "model_path": model_path,
         "model_base": None,
