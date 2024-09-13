@@ -40,19 +40,19 @@ def prepare_n_shot_prompt(n_shot_examples: List[Tuple[str, str]], query: str, mo
     image_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
     
     for image_path, lyrics in n_shot_examples:
-        # if model_config.mm_use_im_start_end:
-        #     prompt += f"{image_token_se}\n"
-        # else:
-        prompt += f"{DEFAULT_IMAGE_TOKEN}\n"
+        if model_config.mm_use_im_start_end:
+            prompt += f"{image_token_se}\n"
+        else:
+            prompt += f"{DEFAULT_IMAGE_TOKEN}\n"
         prompt += f"{query}\n"
         # prompt += f"Image: {image_path}\n"
-        prompt += f"Lyrics:\n{lyrics}\n"
+        prompt += f"Answer:\n{lyrics}\n"
     
-    # if model_config.mm_use_im_start_end:
-    #     prompt += f"{image_token_se}\n"
-    # else:
-    prompt += f"{DEFAULT_IMAGE_TOKEN}\n"
-    prompt += f"{query}\nLyrics:\n"
+    if model_config.mm_use_im_start_end:
+        prompt += f"{image_token_se}\n"
+    else:
+        prompt += f"{DEFAULT_IMAGE_TOKEN}\n"
+    prompt += f"{query}\Answer:\n"
     
     return prompt
 
