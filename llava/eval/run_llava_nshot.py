@@ -36,7 +36,7 @@ def load_images(image_files):
     return [load_image(image_file) for image_file in image_files]
 
 def prepare_n_shot_prompt(n_shot_examples: List[Tuple[str, str]], query: str, model_config) -> str:
-    prompt = ""
+    prompt = f"{query}\n"
     image_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
     
     for image_path, lyrics in n_shot_examples:
@@ -44,7 +44,7 @@ def prepare_n_shot_prompt(n_shot_examples: List[Tuple[str, str]], query: str, mo
             prompt += f"{image_token_se}\n"
         else:
             prompt += f"{DEFAULT_IMAGE_TOKEN}\n"
-        prompt += f"{query}\n"
+        # prompt += f"{query}\n"
         # prompt += f"Image: {image_path}\n"
         prompt += f"Answer:\n{lyrics}\n"
     
@@ -52,7 +52,8 @@ def prepare_n_shot_prompt(n_shot_examples: List[Tuple[str, str]], query: str, mo
         prompt += f"{image_token_se}\n"
     else:
         prompt += f"{DEFAULT_IMAGE_TOKEN}\n"
-    prompt += f"{query}\Answer:\n"
+    # prompt += f"{query}\Answer:\n"
+    prompt += "Answer:\n"
     
     return prompt
 
