@@ -91,7 +91,7 @@ def eval_model(args, n_shot_examples: List[Tuple[str, str]]):
             # Load all images (n-shot examples + query image)
             all_image_files = [example[0] for example in n_shot_examples] + [image_file_query]
             images = load_images(all_image_files)
-            print(images.shape)
+            print(len(images))
             image_sizes = [x.size for x in images]
             images_tensor = process_images(
                 images,
