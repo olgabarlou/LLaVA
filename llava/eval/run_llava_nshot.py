@@ -40,6 +40,7 @@ def prepare_n_shot_prompt(n_shot_examples: List[Tuple[str, str]], query: str, mo
     image_token_se = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN
     
     for image_path, lyrics in n_shot_examples:
+        prompt
         if model_config.mm_use_im_start_end:
             prompt += f"{image_token_se}\n"
         else:
@@ -81,13 +82,13 @@ def eval_model(args, n_shot_examples: List[Tuple[str, str]]):
     conv = conv_templates[conv_mode].copy()
     
     directory = '/kaggle/input/sd-images-v4'
+    n_shot_prompt = prepare_n_shot_prompt(n_shot_examples, args.query, model.config)
+    conv.append_message(conv.roles[0], n_shot_prompt)
+    conv.append_message(conv.roles[1], None)
+    prompt = conv.get_prompt()
     for filename in os.listdir(directory):
         # Prepare n-shot prompt
-        n_shot_prompt = prepare_n_shot_prompt(n_shot_examples, args.query, model.config)
-        conv.append_message(conv.roles[0], n_shot_prompt)
-        conv.append_message(conv.roles[1], None)
-        prompt = conv.get_prompt()
-        print(prompt)
+        # print(prompt)
         if filename.endswith(".png"):
             image_file_query = os.path.join(directory, filename)
             # Load all images (n-shot examples + query image)
