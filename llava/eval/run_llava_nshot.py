@@ -82,18 +82,18 @@ def eval_model(args, n_shot_examples: List[Tuple[str, str]]):
     
     directory = '/kaggle/input/sd-images-v4'
     for filename in os.listdir(directory):
+        # Prepare n-shot prompt
+        n_shot_prompt = prepare_n_shot_prompt(n_shot_examples, args.query, model.config)
+        conv.append_message(conv.roles[0], n_shot_prompt)
+        conv.append_message(conv.roles[1], None)
+        prompt = conv.get_prompt()
+        print(prompt)
         if filename.endswith(".png"):
-            # Prepare n-shot prompt
-            n_shot_prompt = prepare_n_shot_prompt(n_shot_examples, args.query, model.config)
-            conv.append_message(conv.roles[0], n_shot_prompt)
-            conv.append_message(conv.roles[1], None)
-            prompt = conv.get_prompt()
-
             image_file_query = os.path.join(directory, filename)
             # Load all images (n-shot examples + query image)
             all_image_files = [example[0] for example in n_shot_examples] + [image_file_query]
             images = load_images(all_image_files)
-            print(len(images))
+            # print(len(images))
             image_sizes = [x.size for x in images]
             images_tensor = process_images(
                 images,
