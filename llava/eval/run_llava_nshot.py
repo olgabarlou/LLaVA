@@ -63,45 +63,64 @@ def eval_model(args, n_shot_examples: List[Tuple[str, str]]):
         args.model_path, args.model_base, model_name
     )
 
-    conv_mode = "llava_v1" if "v1" in model_name.lower() else "llava_v0"
-    if args.conv_mode:
-        conv_mode = args.conv_mode
+    if "llama-2" in model_name.lower():
+        conv_mode = "llava_llama_2"
+    elif "mistral" in model_name.lower():
+        conv_mode = "mistral_instruct"
+    elif "v1.6-34b" in model_name.lower():
+        conv_mode = "chatml_direct"
+    elif "v1" in model_name.lower():
+        conv_mode = "llava_v1"
+    elif "mpt" in model_name.lower():
+        conv_mode = "mpt"
+    else:
+        conv_mode = "llava_v0"
 
     conv = conv_templates[conv_mode].copy()
     
-    # Prepare n-shot prompt
-    n_shot_prompt = prepare_n_shot_prompt(n_shot_examples, args.query, model.config)
-    conv.append_message(conv.roles[0], n_shot_prompt)
-    conv.append_message(conv.roles[1], None)
-    prompt = conv.get_prompt()
+    directory = '/kaggle/input/sd-images-v4'
+    for filename in os.listdir(directory):
+        if filename.endswith(".png"):
+            # Prepare n-shot prompt
+            n_shot_prompt = prepare_n_shot_prompt(n_shot_examples, args.query, model.config)
+            conv.append_message(conv.roles[0], n_shot_prompt)
+            conv.append_message(conv.roles[1], None)
+            prompt = conv.get_prompt()
 
-    # Load all images (n-shot examples + query image)
-    all_image_files = [example[0] for example in n_shot_examples] + [args.image_file]
-    images = load_images(all_image_files)
-    image_sizes = [x.size for x in images]
-    images_tensor = process_images(
-        images,
-        image_processor,
-        model.config
-    ).to(model.device, dtype=torch.float16)
+            image_file_query = os.path.join(directory, filename)
+            # Load all images (n-shot examples + query image)
+            all_image_files = [example[0] for example in n_shot_examples] + [image_file_query]
+            images = load_images(all_image_files)
+            image_sizes = [x.size for x in images]
+            images_tensor = process_images(
+                images,
+                image_processor,
+                model.config
+            ).to(model.device, dtype=torch.float16)
 
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).cuda()
+            input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).cuda()
 
-    with torch.inference_mode():
-        output_ids = model.generate(
-            input_ids,
-            images=images_tensor,
-            image_sizes=image_sizes,
-            do_sample=True if args.temperature > 0 else False,
-            temperature=args.temperature,
-            top_p=args.top_p,
-            num_beams=args.num_beams,
-            max_new_tokens=args.max_new_tokens,
-            use_cache=True,
-        )
+            with torch.inference_mode():
+                output_ids = model.generate(
+                    input_ids,
+                    images=images_tensor,
+                    image_sizes=image_sizes,
+                    do_sample=True if args.temperature > 0 else False,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    num_beams=args.num_beams,
+                    max_new_tokens=args.max_new_tokens,
+                    use_cache=True,
+                )
 
-    outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
-    print(outputs)
+            outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+            # print(outputs)
+            print(outputs)
+            del images_tensor, input_ids, output_ids
+            with open('/kaggle/working/lyrics.txt', 'a') as f:
+                f.write(f"Results for {filename}:\n")
+                f.write(outputs)
+                f.write('\n--------------------------\n')
 
 if __name__ == "__main__":
     prompt = "Create song lyrics that match the atmosphere and overall sentiment depicted in this image"
@@ -121,8 +140,12 @@ if __name__ == "__main__":
     lyrics6 = "i had like to be under the sea in an octopus it is garden in the shade. he had led us in knows where we have been in his octopus it is garden in the shade. i had ask my friends to come and see an octopus it is garden with me. i had like to be under the sea in an octopus it is garden in the shade. we would be warm below the storm in our little hide away beneath the waves. resting our heads on the sea bed in an octopus it is garden near a cave. we would sing and dance around because we know we cannot be found. i had like to be under the sea in an octopus it is garden in the shade. we would shout and swim about the coral that lies beneath the waves. oh what joy for every girl and boy knowing they are happy and they are safe. we would be so happy you and me no one there to tell us what to do."
     # Example n-shot examples (you would replace these with actual image paths and lyrics)
     n_shot_examples = [
-        ("/path/to/example_image1.jpg", "Example lyrics for image 1..."),
-        ("/path/to/example_image2.jpg", "Example lyrics for image 2..."),
+        ("/kaggle/input/sd-images-examples/7badbc83810546339c357962bf82f85d.png", lyrics1),
+        ("/kaggle/input/sd-images-examples/2726c7a522b44494a7dcd2913d5b4448.png", lyrics2),
+        ("/kaggle/input/sd-images-examples/6a80e424e001469d918b4e2a3ce4df45.png", lyrics3),
+        ("/kaggle/input/sd-images-examples/b62b2a6e5bd94b57835d3ea2b567e910.png", lyrics4),
+        ("/kaggle/input/sd-images-examples/847bb881d5684aab9f7be5ab6f614d47.png", lyrics5),
+        ("/kaggle/input/sd-images-examples/acb9956e2bb54e2eb53aa60bd954854d.png", lyrics6)
     ]
     
     args = type('Args', (), {
@@ -131,7 +154,7 @@ if __name__ == "__main__":
         "model_name": get_model_name_from_path(model_path),
         "query": prompt,
         "conv_mode": None,
-        "image_file": "/path/to/query_image.jpg",
+        #"image_file": "/path/to/query_image.jpg",
         "temperature": 0.6,
         "top_p": None,
         "num_beams": 1,
